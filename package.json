@@ -1,0 +1,16 @@
+{
+  "name": "cesi-eats-back",
+  "version": "1.0.0",
+  "description": "Educational project.\r In our 4th year of training at CESI engineering school we can select one option.\r We have choosen the option based on advanced web development.",
+  "main": "middleware.js",
+  "scripts": {
+    "start": "node middleware.js",
+    "dev": "nodemon middleware.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
