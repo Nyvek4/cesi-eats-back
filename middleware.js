@@ -1,17 +1,13 @@
 const express = require('express');
+
 const app = express();
 app.use(express.json());
+const PORT = process.env.PORT_MIDDLEWARE || 3000;
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send('MIDDLEWARE IS UP');
 });
 
-// Ton middleware ici, par exemple pour communiquer avec un microservice :
-app.use('/api/microservice', (req, res) => {
-  // Ici, tu vas intercepter les requêtes et les transmettre au microservice concerné.
-});
-
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Middleware is running on port ${PORT}`); 
 });
