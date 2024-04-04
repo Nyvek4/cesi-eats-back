@@ -44,7 +44,7 @@ Génération du fichier config et ou fichier de migration (Initialisation)
 npx sequelize-cli init
 npx sequelize-cli migration:generate --name create-users
 ```
-**[MIGRATION]** -> après avoir renseigner le fichier de migration généré précedemment (***crée la table dans le bdd***)
+**[MIGRATION]** -> après avoir renseigner le fichier de migration généré précedemment (***crée la table dans la bdd***)
 ```bash
 npx sequelize-cli db:migrate
 ```
