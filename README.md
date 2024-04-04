@@ -18,11 +18,41 @@ We have choosen the option based on advanced web development.
 
 ## Getting started 
 
-Pour macOS/Linux :
-make dev 
+### Initialisation de la stack (make ou powershell)
+#### Pour macOS/Linux :
 
-Pour Windows :
+```bash
+make dev 
+```
+
+#### Pour Windows :
+
+```powershell
 ./start.ps1
+```
+
+### Migration de la base de donnée
+
+## Sequelize ->
+Installation de cli sequelize :
+```bash
+npm install --save-dev sequelize-cli
+```
+
+Génération du fichier config et ou fichier de migration (Initialisation)
+```bash
+npx sequelize-cli init
+npx sequelize-cli migration:generate --name create-users
+```
+**[MIGRATION]** -> après avoir renseigner le fichier de migration généré précedemment (***crée la table dans le bdd***)
+```bash
+npx sequelize-cli db:migrate
+```
+
+
+
+
+
 
 ## License
 
