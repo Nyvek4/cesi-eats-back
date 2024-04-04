@@ -1,32 +1,41 @@
-const mongoose = require('mongoose');
+const { Sequelize, DataTypes, Model } = require('sequelize');
+const sequelize = new Sequelize(process.env.POSTGRES_URI); // Assure-toi d'avoir défini cette variable d'environnement
 const bcrypt = require('bcrypt');
 
-const userSchema = new mongoose.Schema({
-  firstname: { type: String, required: true},
-  lastname: { type: String, required: true},
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  birthdate: { type: Date, required: true },
-  address : { type: Object, required: false },
-  role: { type: String, default: 'user' },
-  deleted: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-  lastLogin: { type: Date, default: Date.now }
-});
-
-userSchema.pre('save', async function(next) {
-  if (this.isModified('password') || this.isNew) {
-    const hash = await bcrypt.hash(this.password, 10);
-    this.password = hash;
+class User extends Model {
+  // Méthode pour comparer les mots de passe
+  async comparePassword(password) {
+    return bcrypt.compare(password, this.password);
   }
-  next();
+}
+
+User.init({
+  // Définition des attributs du modèle
+  firstname: { type: DataTypes.STRING, allowNull: false },
+  lastname: { type: DataTypes.STRING, allowNull: false },
+  email: { type: DataTypes.STRING, allowNull: false, unique: true },
+  password: { type: DataTypes.STRING, allowNull: false },
+  birthdate: { type: DataTypes.DATEONLY, allowNull: false },
+  address: { type: DataTypes.JSON, allowNull: true },
+  role: { type: DataTypes.STRING, defaultValue: 'user' },
+  deleted: { type: DataTypes.BOOLEAN, defaultValue: false },
+  createdAt: { type: DataTypes.DATE, defaultValue: Sequelize.NOW },
+  updatedAt: { type: DataTypes.DATE, defaultValue: Sequelize.NOW },
+  userType: { type: DataTypes.STRING, defaultValue: 'customer' },
+  lastLogin: { type: DataTypes.DATE, defaultValue: Sequelize.NOW }
+}, {
+  sequelize,
+  modelName: 'User',
+  timestamps: true, // Active les champs createdAt et updatedAt automatiquement
+  hooks: {
+    // Hook avant la sauvegarde pour hacher le mot de passe
+    beforeSave: async (user) => {
+      if (user.changed('password')) {
+        const hash = await bcrypt.hash(user.password, 10);
+        user.password = hash;
+      }
+    }
+  }
 });
-
-userSchema.methods.comparePassword = async function(password) {
-  return await bcrypt.compare(password, this.password);
-};
-
-const User = mongoose.model('User', userSchema);
 
 module.exports = User;

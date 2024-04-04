@@ -18,8 +18,11 @@ We have choosen the option based on advanced web development.
 
 ## Getting started 
 
+Pour macOS/Linux :
+make dev 
 
-
+Pour Windows :
+./start.ps1
 
 ## License
 
