@@ -1,7 +1,7 @@
 # Cesi-Eats
 
 Educational project.
-In our 4th year of training at CESI engineering school we can select one option....
+In our 4th year of training at CESI engineering school we can select one option
 We have choosen the option based on advanced web development.
 
 
