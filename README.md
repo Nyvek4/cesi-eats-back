@@ -10,6 +10,7 @@ We have choosen the option based on advanced web development.
 - [@nyvek4](https://github.com/Nyvek4)
 - [@Tilogr](https://github.com/Tilogr)
 - [@ARESSent](https://github.com/ARESSent)
+- [@QuentinBriancon](https://github.com/QuentinBriancon)
 
 
 ![Logo](https://i.ibb.co/4dYC7Zh/cesi-eats.png)
