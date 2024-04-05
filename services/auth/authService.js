@@ -25,6 +25,18 @@ const sequelize = new Sequelize(process.env.POSTGRES_URI); // Assure-toi que POS
 app.get('/auth', (req, res) => {
   res.send('/!\\ SERVICE Auth : IS UP /!\\');
 });
+
+// Vérification du token
+app.post('/verify-token', (req, res) => {
+    const token = req.body.token;
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(401).send({ valid: false });
+      }
+      res.send({ valid: true, decoded });
+    });
+  });
+
 app.use('/auth', authRoutes);
 
 // Démarrage du serveur

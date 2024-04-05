@@ -1,6 +1,9 @@
 const { Sequelize, DataTypes, Model } = require('sequelize');
-const sequelize = new Sequelize(process.env.POSTGRES_URI); // Assure-toi d'avoir défini cette variable d'environnement
-const bcrypt = require('bcrypt');
+require('dotenv').config({ path:'.env'}); 
+const sequelize = new Sequelize(process.env.POSTGRES_URI, {
+  dialect: 'postgres', 
+});
+const bcrypt = require('bcryptjs');
 
 class User extends Model {
   // Méthode pour comparer les mots de passe
