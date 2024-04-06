@@ -47,8 +47,11 @@ dev: setup
 	@echo "Starting - Auth Service with Nodemon"
 	cd services/auth && npm install && nodemon authService.js &
 
-	@echo "Migrating databese - Auth Service with Nodemon"
+	@echo "Migrating database - Auth Service with Nodemon"
 	npx sequelize-cli db:migrate
+
+	@echo "Starting - User Service with Nodemon"
+	cd services/user && npm install && nodemon userService.js &
 
 
 	@echo "All services have been started in development mode."

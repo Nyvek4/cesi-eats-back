@@ -2,12 +2,13 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
+    await queryInterface.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";')
     await queryInterface.createTable('Users', {
       id: {
         allowNull: false,
-        primaryKey: true,
+        primaryKey: true, 
         type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
+        defaultValue: Sequelize.literal('uuid_generate_v4()')
       },
       firstname: {
         type: Sequelize.STRING,
@@ -31,7 +32,7 @@ module.exports = {
         allowNull: false
       },
       address: {
-        type: Sequelize.JSON, // Utilise TEXT si JSON n'est pas supporté
+        type: Sequelize.JSON,
         allowNull: true
       },
       role: {

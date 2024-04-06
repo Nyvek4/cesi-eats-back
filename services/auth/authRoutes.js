@@ -18,7 +18,7 @@ router.post('/register', async (req, res) => {
       return res.status(409).send({Type: 'ERROR', Status: 'User with the same email already exists.'});
     }
     const hashedPassword = await bcrypt.hash(password, saltRounds);
-    const user = await User.create({ firstname, lastname, email, password: hashedPassword, birthdate, address });
+    const user = await User.create({ firstname, lastname, email, password : hashedPassword, birthdate, address });
     res.status(201).send({Type: 'SUCCESS', Status: 'User registered successfully.'});
   } catch (error) {
     res.status(500).send({Type: 'ERROR', Status: error.message});
@@ -30,26 +30,27 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ where: { email: email } });
-    let token 
-    if (user && await bcrypt.compare(password, user.password)) {
-        switch (user.role) {
-          case 'admin':
-            token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '10h' });
-            break;
-          case 'user':
-            token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '3h' });
-            break;
-          default:
-            break;
-        }
-        res.status(200).json({ token });
+
+    if (!user) {
+      return res.status(401).send('Authentication failed. User not found.');
+    }
+
+    if (await bcrypt.compare(password, user.password)) {
+      const token = jwt.sign(
+        { userId: user.id, role: user.role },
+        process.env.JWT_SECRET, 
+        { expiresIn: user.role === 'admin' ? '10h' : '3h' }
+      );
+      res.status(200).json({ token });
     } else {
-      res.status(401).send('Authentication failed.');
+      res.status(401).send('Authentication failed. Wrong password.');
     }
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).send(error.message);
   }
 });
+
 
 
 

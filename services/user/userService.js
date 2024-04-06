@@ -1,12 +1,12 @@
 const express = require('express');
 const { Sequelize } = require('sequelize');
-const authRoutes = require('./authRoutes');
+const userRoutes = require('./userRoutes');
 require('dotenv').config();
 
 // Initialisation de l'application Express
 const app = express();
 app.use(express.json());
-const PORT = process.env.PORT_SERVICE_AUTH || 3001;
+const PORT = process.env.PORT_SERVICE_USER || 3002;
 
 // Connexion à PostgreSQL avec Sequelize
 const sequelize = new Sequelize(process.env.POSTGRES_URI); // Assure-toi que POSTGRES_URI est défini dans ton .env
@@ -22,24 +22,14 @@ const sequelize = new Sequelize(process.env.POSTGRES_URI); // Assure-toi que POS
 })();
 
 // Routes
-app.get('/auth', (req, res) => {
-  res.send('/!\\ SERVICE Auth : IS UP /!\\');
+app.get('/user', (req, res) => {
+  res.send('/!\\ SERVICE User : IS UP /!\\');
 });
 
-// Vérification du token
-app.post('/verify-token', (req, res) => {
-    const token = req.body.token;
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) {
-        return res.status(401).send({ valid: false });
-      }
-      res.send({ valid: true, decoded });
-    });
-  });
-
-app.use('/auth', authRoutes);
+app.use('/user', userRoutes);
 
 // Démarrage du service
 app.listen(PORT, () => {
-  console.log(`/!\\ SERVICE Auth : IS RUNNING ON ${PORT}  /!\\`);
+  console.log(`/!\\ SERVICE User : IS RUNNING ON ${PORT}  /!\\`);
 });
+
