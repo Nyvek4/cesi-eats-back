@@ -22,7 +22,7 @@ start_services:
 	@echo "KILLALL NODEJS PROCESS..."
 	killall node || true
 
-	@echo "Starting MongoDB with Docker Compose..."
+	@echo "Starting Postgres with Docker Compose..."
 	docker-compose up -d
 	@echo "Starting services..."
 	@echo "Starting - Middleware"
@@ -38,7 +38,7 @@ dev: setup
 	npm install -g nodemon
 	@echo "KILLALL NODEJS PROCESS..."
 	killall node || true
-	@echo "Starting MongoDB with Docker Compose..."
+	@echo "Starting PostgreSQL with Docker Compose..."
 	docker-compose up -d
 	@echo "Starting services with nodemon for development..."
 	@echo "Starting - Middleware with Nodemon"
@@ -48,6 +48,7 @@ dev: setup
 	cd services/auth && npm install && nodemon authService.js &
 
 	@echo "Migrating database - Auth Service with Nodemon"
+	npx sequelize db:migrate:undo:all
 	npx sequelize-cli db:migrate
 
 	@echo "Starting - User Service with Nodemon"
