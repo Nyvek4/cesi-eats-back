@@ -1,11 +1,14 @@
 const express = require('express');
 const { Sequelize } = require('sequelize');
 const authRoutes = require('./authRoutes');
+const cors = require('cors');
+
 require('dotenv').config();
 
 // Initialisation de l'application Express
 const app = express();
 app.use(express.json());
+app.use(cors());
 const PORT = process.env.PORT_SERVICE_AUTH || 3001;
 
 // Connexion à PostgreSQL avec Sequelize
