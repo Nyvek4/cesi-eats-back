@@ -21,9 +21,56 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
-      - "8080:80"
+      - "8090:80"  # Port modifié pour pgAdmin
     depends_on:
       - postgres
+
+  api-gateway:
+    image: nginx
+    restart: always
+    ports:
+      - "8080:80"  # NGINX exposé sur le port 8080 de l'hôte
+    volumes:
+      - ./nginx:/etc/nginx/conf.d  # Montage du dossier contenant la configuration de NGINX
+    depends_on:
+      - postgres
+
+  auth-service:
+    build:
+      context: ./services/auth
+      dockerfile: Dockerfile
+      args:
+        - PORT=${PORT_SERVICE_AUTH}
+    ports:
+      - "${PORT_SERVICE_AUTH}:${PORT_SERVICE_AUTH}"
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      JWT_SECRET: ${JWT_SECRET}
+      MONGODB_URI: ${MONGODB_URI}
+    depends_on:
+      - postgres
+    volumes:
+      - ./services/auth:/appCOPY services/auth/package*.json ./
+      - /app/node_modules
+
+  user-service:
+    build:
+      context: ./services/user
+      dockerfile: Dockerfile
+      args:
+        - PORT=${PORT_SERVICE_USER}
+    ports:
+      - "${PORT_SERVICE_USER}:${PORT_SERVICE_USER}"
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      JWT_SECRET: ${JWT_SECRET}
+      MONGODB_URI: ${MONGODB_URI}
+    depends_on:
+      - auth-service
+      - postgres
+    volumes:
+      - ./services/user:/app
+      - /app/node_modules
 
 volumes:
   postgres_data:

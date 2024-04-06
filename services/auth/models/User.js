@@ -13,7 +13,6 @@ class User extends Model {
 }
 
 User.init({
-  // Définition des attributs du modèle
   firstname: { type: DataTypes.STRING, allowNull: false },
   lastname: { type: DataTypes.STRING, allowNull: false },
   email: { type: DataTypes.STRING, allowNull: false, unique: true },
@@ -30,15 +29,15 @@ User.init({
   sequelize,
   modelName: 'User',
   timestamps: true, // Active les champs createdAt et updatedAt automatiquement
-  hooks: {
-    // Hook avant la sauvegarde pour hacher le mot de passe
-    beforeSave: async (user) => {
-      if (user.changed('password')) {
-        const hash = await bcrypt.hash(user.password, 10);
-        user.password = hash;
-      }
-    }
-  }
+  // hooks: {
+  //   // Hook avant la sauvegarde pour hacher le mot de passe
+  //   beforeSave: async (user) => {
+  //     if (user.changed('password')) {
+  //       const hash = await bcrypt.hash(user.password, 10);
+  //       user.password = hash;
+  //     }
+  //   }
+  // }
 });
 
 module.exports = User;
