@@ -61,6 +61,9 @@ build: setup
 	sudo apt update -y
 	sudo apt install -y nodejs npm
 	npm install
+	curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
+
 	@echo "Starting MongoDB with Docker Compose for testing purposes..."
 	docker-compose up -d
 
