@@ -59,8 +59,10 @@ dev: setup
 # Commande pour le build et le test des applications
 build: setup
 	sudo apt update -y
-	sudo apt install -y nodejs npm docker-compose
+	sudo apt install -y nodejs npm docker docker-compose
 	npm install
+	sudo usermod -aG docker $USER
+	sudo service docker restart
 
 	@echo "Starting MongoDB with Docker Compose for testing purposes..."
 	docker-compose up -d
