@@ -56,3 +56,16 @@ dev: setup
 
 
 	@echo "All services have been started in development mode."
+
+# Commande pour le build et le test des applications
+build: setup
+	sudo apt update -y
+	sudo apt install -y nodejs npm docker docker-compose
+	npm install
+	sudo usermod -aG docker $(whoami)
+	sudo service docker restart
+
+	@echo "Starting MongoDB with Docker Compose for testing purposes..."
+	docker-compose up -d
+
+	@echo "Build and test steps completed."
