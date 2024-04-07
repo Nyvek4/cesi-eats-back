@@ -51,6 +51,11 @@ npx sequelize-cli db:migrate
 ```
 
 
+## Créé un réseau docker
+```bash
+docker network create ceats_network
+```
+
 
 
 

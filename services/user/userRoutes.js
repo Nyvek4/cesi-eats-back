@@ -1,6 +1,5 @@
 const express = require('express');
 const User = require('./models/User'); // Utilise le modèle Sequelize User
-const jwt = require('jsonwebtoken');
 const authenticateTokenAndRole = require('./utils/authenticateTokenAndRole');
 const router = express.Router();
 

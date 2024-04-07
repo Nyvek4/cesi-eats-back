@@ -13,6 +13,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-script/postgres:/docker-entrypoint-initdb.d
+    networks:
+      - ceats_network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -24,16 +26,18 @@ services:
       - "8090:80"  # Port modifié pour pgAdmin
     depends_on:
       - postgres
+    networks:
+      - ceats_network
 
-  api-gateway:
-    image: nginx
-    restart: always
-    ports:
-      - "8080:80"  # NGINX exposé sur le port 8080 de l'hôte
-    volumes:
-      - ./nginx:/etc/nginx/conf.d  # Montage du dossier contenant la configuration de NGINX
-    depends_on:
-      - postgres
+  # api-gateway:
+  #   image: nginx
+  #   restart: always
+  #   ports:
+  #     - "8080:80"  # NGINX exposé sur le port 8080 de l'hôte
+  #   volumes:
+  #     - ./nginx:/etc/nginx/conf.d  # Montage du dossier contenant la configuration de NGINX
+  #   depends_on:
+  #     - postgres
 
   auth-service:
     build:
@@ -52,6 +56,8 @@ services:
     volumes:
       - ./services/auth:/app
       - /app/node_modules
+    networks:
+      - ceats_network
 
   user-service:
     build:
@@ -71,6 +77,33 @@ services:
     volumes:
       - ./services/user:/app
       - /app/node_modules
+    networks:
+      - ceats_network
+
+  article-service:
+    build:
+      context: ./services/article
+      dockerfile: Dockerfile
+      args:
+        - PORT=${PORT_SERVICE_ARTICLE}
+    ports:
+      - "${PORT_SERVICE_ARTICLE}:${PORT_SERVICE_ARTICLE}"
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      JWT_SECRET: ${JWT_SECRET}
+      MONGODB_URI: ${MONGODB_URI}
+    depends_on:
+      - auth-service
+      - postgres
+    volumes:
+      - ./services/article:/app
+      - /app/node_modules
+    networks:
+      - ceats_network
 
 volumes:
   postgres_data:
+
+networks:
+  ceats_network:
+    external: true
