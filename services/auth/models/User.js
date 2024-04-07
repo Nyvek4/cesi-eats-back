@@ -6,7 +6,6 @@ const sequelize = new Sequelize(process.env.POSTGRES_URI, {
 const bcrypt = require('bcryptjs');
 
 class User extends Model {
-  // Méthode pour comparer les mots de passe
   async comparePassword(password) {
     return bcrypt.compare(password, this.password);
   }
@@ -28,16 +27,15 @@ User.init({
 }, {
   sequelize,
   modelName: 'User',
-  timestamps: true, // Active les champs createdAt et updatedAt automatiquement
-  // hooks: {
-  //   // Hook avant la sauvegarde pour hacher le mot de passe
-  //   beforeSave: async (user) => {
-  //     if (user.changed('password')) {
-  //       const hash = await bcrypt.hash(user.password, 10);
-  //       user.password = hash;
-  //     }
-  //   }
-  // }
+  timestamps: true, 
+   hooks: {
+     beforeSave: async (user) => {
+      if (user.changed('password') && !user.password.startsWith('$2a$') && !user.password.startsWith('$2b$') && !user.password.startsWith('$2y$')) {
+        const hash = await bcrypt.hash(user.password, 10);
+        user.password = hash;
+      }
+     }
+   }
 });
 
 module.exports = User;

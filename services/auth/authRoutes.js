@@ -17,6 +17,7 @@ router.post('/register', async (req, res) => {
     if (existingUser) {
       return res.status(409).send({Type: 'ERROR', Status: 'User with the same email already exists.'});
     }
+    console.log('passsss --->', password);
     const user = await User.create({ firstname, lastname, email, password, birthdate, address });
     res.status(201).send({Type: 'SUCCESS', Status: 'User registered successfully.'});
   } catch (error) {
@@ -27,19 +28,18 @@ router.post('/register', async (req, res) => {
 
 // Connexion
 router.post('/login', async (req, res) => {
+  console.log("Tentative de login", req.body); // Pour vérifier que cette route est bien atteinte
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ where: { email: email } });
 
     if (!user) {
-      return res.status(401).send('Authentication failed. User not found.');
+      return res.status(401).send('Authentication failed. User not found !!!!.');
     }
-
-    // Utilisation de comparePassword définie dans le modèle User
-    if (await user.comparePassword(password)) {
+    if (await bcrypt.compare(password, user.password)) {
       const token = jwt.sign(
         { userId: user.id, role: user.role },
-        process.env.JWT_SECRET,
+        process.env.JWT_SECRET, 
         { expiresIn: user.role === 'admin' ? '10h' : '3h' }
       );
       res.status(200).json({ token });
@@ -51,7 +51,6 @@ router.post('/login', async (req, res) => {
     res.status(500).send(error.message);
   }
 });
-
 
 
 module.exports = router;

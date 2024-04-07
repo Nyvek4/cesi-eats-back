@@ -50,7 +50,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - ./services/auth:/appCOPY services/auth/package*.json ./
+      - ./services/auth:/app
       - /app/node_modules
 
   user-service:
