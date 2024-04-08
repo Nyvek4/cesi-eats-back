@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('./models/User'); // Utilise le modèle Sequelize User
 const Cart = require('./models/Cart');
+const checkItems = require('./utils/checkItems');
 const authenticateTokenAndRole = require('./utils/authenticateTokenAndRole');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
@@ -26,27 +27,43 @@ router.get('/consult',authenticateTokenAndRole, async (req, res) => {
 
 // Ajout d'un article au panier d'un utilisateur
 router.put('/edit',authenticateTokenAndRole, async (req, res) => {
-const { articleId } = req.body;
+const body  = req.body;
+const Items = body.Items;
 const userId = req.user.id;
+console.log(Items)
 try {
-  //verifier que l'article est en base
-  const article = await Article.findByPk(articleId);
-  if (!article) {
-    return res.status(404).send({ message: "Article not found" });
+  if (!checkItems(Items)) {
+    return res.status(400).json({ message: "Invalid items in cart :" });
   }
-  //verifier que l'utilisateur est en base
   const user = await User.findByPk(userId);
   if (!user) {
     return res.status(404).send({ message: "User not found" });
   }
-  //ajouter l'article au panier de l'utilisateur
-  user.cart.push(articleId);
-  await user.save();
-  res.send({ message: "Article added to cart successfully" });
+  const cart = await Cart.findOne({ where: { userId: req.user.id } });
+  const payload = { "items": Items}
+  await cart.update(payload);
+  if(cart){
+    return res.send({ message: "Article added to cart successfully" });
+  }
 } catch (error) {
   console.error(error);
   res.status(500).send({ message: error.message });
 }});
+
+router.delete('/delete',authenticateTokenAndRole, async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const cart = await Cart.findOne({ where: { userId: req.user.id } });
+    if (!cart) {
+      return res.status(404).send({ message: "Cart not found" });
+    }
+    await cart.destroy();
+    res.send({ message: "Cart deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: error.message });
+  }
+});
 
 
 module.exports = router;
