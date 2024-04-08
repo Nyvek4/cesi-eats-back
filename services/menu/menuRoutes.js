@@ -1,8 +1,13 @@
 const express = require('express');
 const User = require('./models/User');
+const Articles = require('./models/Article');
+const Categorie = require('./models/Category');
+const Menu = require('./models/Menu');
+const { Sequelize } = require('sequelize');
 const authenticateTokenAndRole = require('./utils/authenticateTokenAndRole');
 const router = express.Router();
-
+const defineAssociations = require('./models/associations');
+defineAssociations();
 // Récupérer tous les menus d'un restaurant
 router.get('/restaurant/:restaurantId', async (req, res) => {
   try {
@@ -20,10 +25,34 @@ router.get('/restaurant/:restaurantId', async (req, res) => {
 router.get('/search/:menuName', async (req, res) => {
   try {
     const menus = await Menu.findAll({
-      where: { name: req.params.menuName },
-      include: Restaurant
+      where: {
+        name: {
+          [Sequelize.Op.iLike]: `%${req.params.menuName}%` // Utilise iLike pour une recherche insensible à la casse
+        }
+      },
+      include: {
+        model: User,
+        as: 'User',
+        attributes: ['id'] // Inclure seulement l'ID de l'utilisateur
+      },
+      order: [['createdAt', 'DESC']], 
     });
-    res.json(menus);
+
+    // Créer un objet pour suivre les userId déjà ajoutés
+    const addedUserIds = new Set();
+    const uniqueMenus = [];
+
+    menus.forEach(menu => {
+      if (!addedUserIds.has(menu.User.id)) {
+        uniqueMenus.push(menu); // Ajouter le menu au tableau des résultats uniques
+        addedUserIds.add(menu.User.id); // Marquer le userId comme ajouté
+      }
+    });
+
+    // Extraire les IDs des utilisateurs depuis les menus uniques
+    const userIds = uniqueMenus.map(menu => menu.User.id);
+
+    res.json({ userIds });
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: error.message });

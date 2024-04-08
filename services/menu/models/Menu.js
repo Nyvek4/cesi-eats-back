@@ -17,7 +17,6 @@ Menu.init({
   name: { type: DataTypes.STRING, allowNull: false },
   description: { type: DataTypes.TEXT, allowNull: false },
   price: { type: DataTypes.FLOAT, allowNull: false },
-  articles: { type: DataTypes.JSONB, allowNull: true },
   userId: {
     type: DataTypes.UUID,
     references: {
@@ -42,6 +41,13 @@ Menu.init({
   sequelize,
   modelName: 'Menu',
   timestamps: true, // Active les champs createdAt et updatedAt automatiquement
+});
+
+Menu.belongsToMany(Article, {
+  through: 'menuItems', // Nom de la table d'association
+  as: 'articles', // Nom de la relation
+  foreignKey: 'menuId', // Clé étrangère dans la table d'association qui référence Menu
+  otherKey: 'articleId', // Clé étrangère dans la table d'association qui référence Article
 });
 
 module.exports = Menu;
