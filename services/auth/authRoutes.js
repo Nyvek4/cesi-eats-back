@@ -9,7 +9,7 @@ const saltRounds = 10;
 
 router.post('/register', async (req, res) => {
   try {
-    const { firstname, lastname, email, password, passwordConfirm, birthdate, address } = req.body;
+    const { firstname, lastname, email, password, passwordConfirm, birthdate, address, userType } = req.body;
     if (password !== passwordConfirm) {
       return res.status(410).send({Type: 'ERROR', Status: 'Passwords do not match.'});
     }
@@ -17,8 +17,7 @@ router.post('/register', async (req, res) => {
     if (existingUser) {
       return res.status(409).send({Type: 'ERROR', Status: 'User with the same email already exists.'});
     }
-    console.log('passsss --->', password);
-    const user = await User.create({ firstname, lastname, email, password, birthdate, address });
+    const user = await User.create({ firstname, lastname, email, password, birthdate, address, userType });
     res.status(201).send({Type: 'SUCCESS', Status: 'User registered successfully.'});
   } catch (error) {
     res.status(500).send({Type: 'ERROR', Status: error.message});

@@ -43,11 +43,15 @@ Menu.init({
   timestamps: true, // Active les champs createdAt et updatedAt automatiquement
 });
 
-Menu.belongsToMany(Article, {
-  through: 'menuItems', // Nom de la table d'association
-  as: 'articles', // Nom de la relation
-  foreignKey: 'menuId', // Clé étrangère dans la table d'association qui référence Menu
-  otherKey: 'articleId', // Clé étrangère dans la table d'association qui référence Article
-});
+// Après la définition du modèle Menu
+Menu.associate = function(models) {
+  Menu.belongsToMany(models.Article, {
+    through: 'MenuArticles',
+    as: 'articles',
+    foreignKey: 'menuId',
+    otherKey: 'articleId'
+  });
+};
+
 
 module.exports = Menu;

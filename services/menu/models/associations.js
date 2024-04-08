@@ -8,8 +8,10 @@ const defineAssociations = () => {
   Article.belongsTo(User, { foreignKey: 'userId' });
   Category.hasMany(Article, { foreignKey: 'categoryId' }); // Modifier le nom de la clé étrangère en 'categoryId'
   Article.belongsTo(Category, { foreignKey: 'categoryId' });
-  Menu.belongsTo(User, { foreignKey: 'restaurantId' }); // Changer le nom de la clé étrangère en 'restaurantId'
-  Menu.hasMany(Article); // Laisser la relation entre Menu et Article telle quelle
+  Menu.belongsToMany(Article, { through: 'MenuArticles', foreignKey: 'menuId' });
+  Article.belongsToMany(Menu, { through: 'MenuArticles', foreignKey: 'articleId' });
 };
+
+
 
 module.exports = defineAssociations;

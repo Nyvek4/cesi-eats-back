@@ -4,10 +4,12 @@ const Articles = require('./models/Article');
 const Categorie = require('./models/Category');
 const Menu = require('./models/Menu');
 const { Sequelize } = require('sequelize');
+const checkItems = require('./utils/checkItems');
 const authenticateTokenAndRole = require('./utils/authenticateTokenAndRole');
 const router = express.Router();
 const defineAssociations = require('./models/associations');
 defineAssociations();
+
 // Récupérer tous les menus d'un restaurant
 router.get('/restaurant/:restaurantId', async (req, res) => {
   try {
@@ -59,24 +61,45 @@ router.get('/search/:menuName', async (req, res) => {
   }
 });
 
-// Créer un menu
+// Créer un nouveau menu
 router.post('/', authenticateTokenAndRole, async (req, res) => {
-    const { name, description, price, composition } = req.body;
-    const { id, role } = req.user;
-  
-    // Seuls les utilisateurs avec le rôle "restaurant" ou "admin" peuvent créer des menus
-    if (role === 'restaurant' || role === 'admin') {
-      try {
-        const menu = await Menu.create({ name, description, price, restaurantId : id, articles});
-        res.status(201).json(menu);
-      } catch (error) {
-        console.error(error);
-        res.status(500).send({ message: error.message });
-      }
-    } else {
+  const { name, description, price, articlesId, categorieId,restaurantId } = req.body;
+  const { id, role } = req.user;
+
+  if (!checkItems(articlesId)) {
+    return res.status(400).json({ message: "Invalid items in menu" });
+  }
+
+  if (role !== 'admin' && role !== 'restaurant') {
       return res.status(403).send({ message: "Unauthorized" });
-    }
-  });
+  }
+  const restaurantIdValue = role !== 'admin' ? id : restaurantId;
+
+  try {
+      // Créer le menu
+      const menu = await Menu.create({
+          name,
+          description,
+          price,
+          userId: restaurantIdValue, 
+          categorieId
+      });
+
+      // Associer les articles au menu via MenuArticles
+      if (articlesId && articlesId.length) {
+          const menuArticles = articlesId.map(articleId => ({
+              menuId: menu.id,
+              articleId
+          }));
+          await Sequelize.models.MenuArticles.bulkCreate(menuArticles);
+      }
+
+      res.status(201).json(menu);
+  } catch (error) {
+      console.error(error);
+      res.status(500).send({ message: error.message });
+  }
+});
   
 // Mettre à jour un menu
 router.put('/:menuId', authenticateTokenAndRole, async (req, res) => {
