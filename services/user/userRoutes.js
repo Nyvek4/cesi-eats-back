@@ -65,29 +65,21 @@ router.get('/list', authenticateTokenAndRole, async (req, res) => {
     }
 });
 
-router.get('/:id', authenticateTokenAndRole, async (req, res) => {
-  const { id } = req.params;
+router.get('/profile', authenticateTokenAndRole, async (req, res) => {
   const userId = req.user.id; 
-  const userRole = req.user.role; 
 
-  // Autoriser l'accès si l'utilisateur demande ses propres informations ou si l'utilisateur est un admin
-  if (userId === id || userRole === 'admin') {
     try {
-      const user = await User.findByPk(id, {
+      const user = await User.findByPk(userId, {
         attributes: { exclude: ['password'] } 
       });
       if (!user) {
-        return res.status(404).send({ message: "User not found" });
+        return res.status(404).send({ message: "User not found : Who are you" });
       }
       res.json(user); 
     } catch (error) {
       console.error(error); 
       res.status(500).send({ message: error.message });
     }
-  } else {
-    // Si l'utilisateur faisant la requête n'est pas l'utilisateur ciblé et n'est pas un admin
-    return res.status(403).send({ message: "Unauthorized" });
-  }
 });
 
 module.exports = router;
