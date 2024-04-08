@@ -1,6 +1,7 @@
 const express = require('express');
 const { Sequelize } = require('sequelize');
 const authRoutes = require('./authRoutes');
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
 
 require('dotenv').config();
@@ -31,6 +32,8 @@ app.get('/auth', (req, res) => {
 // Vérification du token
 app.post('/verify-token', (req, res) => {
     const token = req.body.token;
+    console.log('token', token);
+
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err) {
         return res.status(401).send({ valid: false });

@@ -28,7 +28,7 @@ app.get('/dashboard', (req, res) => {
   res.send('/!\\ SERVICE Dashboard : IS UP /!\\');
 });
 
-app.use('/dashboard', authRoutes);
+app.use('/dashboard', dashboardRoutes);
 
 // Démarrage du service
 app.listen(PORT, () => {

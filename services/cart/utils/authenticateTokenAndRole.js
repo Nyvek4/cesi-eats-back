@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Cart = require('../models/Cart');
 const verify = require('./verifyCartCreation');
 
 
@@ -31,15 +32,28 @@ module.exports = async function (req, res, next) {
     }
     req.user = {
       id: user.id,
-      role: user.role
+      role: user.role,
+      userType: user.userType
     };
 
-    // ICI J'AIMERAIS VERIFIER QUE L'UTILISATEUR A BIEN UN PANIER
+    // VERIFIER QUE L'UTILISATEUR A BIEN UN PANIER
+    const hasCart = await verify(req.user.id);
+    if (!hasCart) {
+      try {
+          let cart = await Cart.create({
+          userId: req.user.id,
+          items: {} 
+          });
+      } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: "An error occurred while retrieving or creating the cart" });
+      }   
+    }
 
     next();
   } catch (err) {
     // Gestion des erreurs (token invalide, expiré, ou erreur DB)
     console.error('Token error:', err);
-    return res.status(403).json({ validity: false, message: "Token invalid or expired" });
+    return res.status(403).json({ validity: false, message: "Token invalid/expired or verify cart crashed" });
   }
 };

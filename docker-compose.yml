@@ -101,6 +101,27 @@ services:
     networks:
       - ceats_network
 
+  cart-service:
+    build:
+      context: ./services/cart
+      dockerfile: Dockerfile
+      args:
+        - PORT=${PORT_SERVICE_CART}
+    ports:
+      - "${PORT_SERVICE_CART}:${PORT_SERVICE_CART}"
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      JWT_SECRET: ${JWT_SECRET}
+      MONGODB_URI: ${MONGODB_URI}
+    depends_on:
+      - auth-service
+      - postgres
+    volumes:
+      - ./services/cart:/app
+      - /app/node_modules
+    networks:
+      - ceats_network
+
 volumes:
   postgres_data:
 

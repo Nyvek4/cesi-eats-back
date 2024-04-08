@@ -1,25 +1,23 @@
 const express = require('express');
 const User = require('./models/User'); // Utilise le modèle Sequelize User
+const Cart = require('./models/Cart');
 const authenticateTokenAndRole = require('./utils/authenticateTokenAndRole');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 
 
 // Consultation du panier d'un utilisateur 
-
-router.get('/',authenticateTokenAndRole, async (req, res) => {
+router.get('/consult',authenticateTokenAndRole, async (req, res) => {
   try {
     
     const userId = req.user.id; 
     const userType = req.user.userType;
+    console.log(userType)
     if (userType !== 'customer') {
       return res.status(403).json({ message: "Unauthorized : You need to be a customer" });
     }
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return res.status(404).send({ message: "User not found : No cart there" });
-    }
-    res.json(user.cart);
+    cart = await Cart.findOne({ where: { userId: req.user.id } });
+    res.json(cart);
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: error.message });
@@ -27,7 +25,7 @@ router.get('/',authenticateTokenAndRole, async (req, res) => {
 });
 
 // Ajout d'un article au panier d'un utilisateur
-router.post('/add',authenticateTokenAndRole, async (req, res) => {
+router.put('/edit',authenticateTokenAndRole, async (req, res) => {
 const { articleId } = req.body;
 const userId = req.user.id;
 try {

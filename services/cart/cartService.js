@@ -28,7 +28,7 @@ app.get('/cart', (req, res) => {
   res.send('/!\\ SERVICE Cart : IS UP /!\\');
 });
 
-app.use('/cart', authRoutes);
+app.use('/cart', cartRoutes);
 
 // Démarrage du service
 app.listen(PORT, () => {
