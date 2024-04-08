@@ -1,5 +1,6 @@
 const { Sequelize, DataTypes, Model } = require('sequelize');
 require('dotenv').config({ path:'.env'}); 
+const Article = require('./Article');
 const sequelize = new Sequelize(process.env.POSTGRES_URI, {
   dialect: 'postgres', 
 });
@@ -40,5 +41,7 @@ User.init({
     }
   }
 });
+
+User.hasMany(Article, { foreignKey: 'userId' });
 
 module.exports = User;

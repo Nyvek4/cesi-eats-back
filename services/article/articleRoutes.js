@@ -1,5 +1,7 @@
 const express = require('express');
 const Article = require('./models/Article');
+const User = require('./models/User');
+const { Sequelize } = require('sequelize');
 const authenticateTokenAndRole = require('./utils/authenticateTokenAndRole');
 const router = express.Router();
 
@@ -7,7 +9,7 @@ const router = express.Router();
 router.get('/restaurant/:restaurantId', async (req, res) => {
   try {
     const articles = await Article.findAll({
-      where: { restaurantId: req.params.restaurantId }
+      where: { userId: req.params.restaurantId }
     });
     res.json(articles);
   } catch (error) {
@@ -15,26 +17,40 @@ router.get('/restaurant/:restaurantId', async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 });
-// Rechercher un article par nom
+
 router.get('/search/:articleName', async (req, res) => {
   try {
     const articles = await Article.findAll({
-      where: { name: req.params.articleName },
-      include: Restaurant
+      where: {
+        name: {
+          [Sequelize.Op.iLike]: `%${req.params.articleName}%` // Utilise iLike pour une recherche insensible à la casse
+        }
+      },
+      include: {
+        model: User,
+        attributes: ['id'] // Inclure seulement l'ID de l'utilisateur
+      },
+      attributes: ['userId'] // Inclure seulement l'ID de l'utilisateur dans l'objet article
     });
-    res.json(articles);
+
+    // Extraire les IDs des utilisateurs depuis les articles
+    const userIds = articles.map(article => article.User.id);
+
+    res.json({ userIds });
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: error.message });
   }
 });
+
 // Créer un article
 router.post('/', authenticateTokenAndRole, async (req, res) => {
   const { name, description, price, composition, type, restaurantId, categorieId } = req.body;
   const { id, role, userType } = req.user;
-
+  console.log(role,userType)
   // Seuls les utilisateurs avec le type "restaurant" ou le role "admin" peuvent créer des articles
   if (userType === 'restaurant' || role === 'admin') {
+
     try {
       if (!name || !description || !price || !type || !categorieId) {
         return res.status(400).send({ message: "Please provide name, description, price, type and categorieId" });
@@ -79,7 +95,7 @@ router.put('/:articleId', authenticateTokenAndRole, async (req, res) => {
         return res.status(404).send({ message: "Article not found" });
       }
       // Vérifier si l'utilisateur est autorisé à modifier l'article
-      if (role === 'admin' || (userType === 'Restaurant' && article.userId === id)) {
+      if (role === 'admin' || (userType === 'restaurant' && article.userId === id)) {
         await article.update(updateData);
         res.send({ message: "Article updated successfully" });
       } else {

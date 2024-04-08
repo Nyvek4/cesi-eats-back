@@ -1,4 +1,5 @@
 const { Sequelize, DataTypes, Model } = require('sequelize');
+const User = require('./User');
 require('dotenv').config({ path: '.env' });
 const sequelize = new Sequelize(process.env.POSTGRES_URI, {
   dialect: 'postgres',
@@ -44,5 +45,7 @@ Article.init({
   modelName: 'Article',
   timestamps: true, // Active les champs createdAt et updatedAt automatiquement
 });
+
+Article.belongsTo(User, { foreignKey: 'userId' });
 
 module.exports = Article;
