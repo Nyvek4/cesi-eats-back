@@ -1,5 +1,6 @@
 const { Sequelize, DataTypes, Model } = require('sequelize');
 require('dotenv').config({ path:'.env'}); 
+
 const sequelize = new Sequelize(process.env.POSTGRES_URI, {
   dialect: 'postgres', 
 });

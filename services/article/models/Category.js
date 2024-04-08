@@ -1,19 +1,26 @@
-// Dans models/categorie.js
-'use strict';
-const { Model } = require('sequelize');
 
-module.exports = (sequelize, DataTypes) => {
-  class Category extends Model {
-    static associate(models) {
-      Category.hasMany(models.Article, { foreignKey: 'categoryId' });
-    }
-  }
-  Category.init({
-    nom: DataTypes.STRING,
-    photo: DataTypes.STRING
-  }, {
-    sequelize,
-    modelName: 'Category',
-  });
-  return Category;
-};
+const { Sequelize, DataTypes, Model } = require('sequelize');
+const sequelize = new Sequelize(process.env.POSTGRES_URI);
+
+class Categorie extends Model {}
+
+Categorie.init({
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: Sequelize.UUIDV4,
+    primaryKey: true,
+  },
+  nom: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  photo: {
+    type: DataTypes.STRING,
+    allowNull: true, // suppose que le champ photo est optionnel
+  },
+}, {
+  sequelize,
+  modelName: 'Categorie',
+});
+
+module.exports = Categorie;
