@@ -10,6 +10,8 @@ const defineAssociations = () => {
   Article.belongsTo(Category, { foreignKey: 'categoryId' });
   Menu.belongsToMany(Article, { through: 'MenuArticles', foreignKey: 'menuId' });
   Article.belongsToMany(Menu, { through: 'MenuArticles', foreignKey: 'articleId' });
+  User.hasMany(Menu, { foreignKey: 'userId', as: 'Menus' });
+  Menu.belongsTo(User, { foreignKey: 'userId', as: 'User' });
 };
 
 
