@@ -1,6 +1,7 @@
 const express = require('express');
 const { Sequelize } = require('sequelize');
 const userRoutes = require('./userRoutes');
+const cors = require('cors');
 require('dotenv').config();
 
 // Initialisation de l'application Express
