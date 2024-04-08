@@ -43,7 +43,7 @@ try {
   const payload = { "items": Items}
   await cart.update(payload);
   if(cart){
-    return res.send({ message: "Article added to cart successfully" });
+    return res.send({ message: "Items added to cart successfully" });
   }
 } catch (error) {
   console.error(error);

@@ -142,6 +142,28 @@ services:
       - /app/node_modules
     networks:
       - ceats_network
+
+  order-service:
+    build:
+      context: ./services/order
+      dockerfile: Dockerfile
+      args:
+        - PORT=${PORT_SERVICE_ORDER}
+    ports:
+      - "${PORT_SERVICE_ORDER}:${PORT_SERVICE_ORDER}"
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      JWT_SECRET: ${JWT_SECRET}
+      MONGODB_URI: ${MONGODB_URI}
+    depends_on:
+      - auth-service
+      - postgres
+    volumes:
+      - ./services/order:/app
+      - /app/node_modules
+    networks:
+      - ceats_network
+
 volumes:
   postgres_data:
 
