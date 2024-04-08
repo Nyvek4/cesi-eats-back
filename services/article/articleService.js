@@ -4,6 +4,7 @@ const articleRoutes = require('./articleRoutes');
 require('dotenv').config();
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 const PORT = process.env.PORT_SERVICE_ARTICLE || 3003;
 const sequelize = new Sequelize(process.env.POSTGRES_URI); 

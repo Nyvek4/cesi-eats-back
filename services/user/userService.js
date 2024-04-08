@@ -5,6 +5,7 @@ require('dotenv').config();
 
 // Initialisation de l'application Express
 const app = express();
+app.use(cors());
 app.use(express.json());
 const PORT = process.env.PORT_SERVICE_USER || 3002;
 

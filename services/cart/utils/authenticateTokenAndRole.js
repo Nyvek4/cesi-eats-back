@@ -1,6 +1,9 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+const verify = require('./verifyCartCreation');
 
-module.exports = function(req, res, next) {
+
+module.exports = async function (req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -8,14 +11,35 @@ module.exports = function(req, res, next) {
     return res.status(401).json({ validity: false, message: "Token not provided" });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ validity: false, message: "Token invalid or expired" });
-    }
+  try {
+    const decoded = await new Promise((resolve, reject) => {
+      jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(decoded);
+        }
+      });
+    });
 
-    // Le token est valide. On stocke les informations de l'utilisateur dans req.user pour les utiliser plus tard.
-    req.user = decoded; 
+    const user = await User.findOne({ where: { id: decoded.userId } });
+    if (!user || user.deleted) {
+      return res.status(404).json({ validity: false, message: "Token user is deleted or suspended" });
+    }
+    if (decoded.role !== user.role) {
+      return res.status(403).json({ validity: false, message: "Token user role changed" });
+    }
+    req.user = {
+      id: user.id,
+      role: user.role
+    };
+
+    // ICI J'AIMERAIS VERIFIER QUE L'UTILISATEUR A BIEN UN PANIER
 
     next();
-  });
+  } catch (err) {
+    // Gestion des erreurs (token invalide, expiré, ou erreur DB)
+    console.error('Token error:', err);
+    return res.status(403).json({ validity: false, message: "Token invalid or expired" });
+  }
 };
