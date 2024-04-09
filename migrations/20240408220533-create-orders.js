@@ -21,7 +21,7 @@ module.exports = {
         onDelete: 'CASCADE',
       },
       items: {
-        type: Sequelize.ARRAY(Sequelize.UUID),
+        type: Sequelize.JSONB,
         allowNull: false,
       },
       address: {

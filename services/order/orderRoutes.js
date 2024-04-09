@@ -2,17 +2,17 @@ const express = require('express');
 const router = express.Router();
 const Order = require('./models/Order');
 const Cart = require('./models/Cart');
+const Article = require('./models/Article');
+const Menu = require('./models/Menu');
 const verifyCard = require('./utils/verifyCard');
 const authenticateTokenAndRole = require('./utils/authenticateTokenAndRole');
 const { Op } = require('sequelize');
 
 // Route pour créer une commande à partir du panier
 router.post('/create', authenticateTokenAndRole, async (req, res) => {
-  const  userId  = req.user.id;
-  
-  try {
-    // Rechercher le panier de l'utilisateur
+  const userId = req.user.id;
 
+  try {
     if (req.user.userType !== 'customer') {
       return res.status(403).json({ message: 'Unauthorized: You need to be a customer' });
     }
@@ -21,17 +21,38 @@ router.post('/create', authenticateTokenAndRole, async (req, res) => {
     if (!cart) {
       return res.status(404).send({ message: 'Cart not found' });
     }
-    
-    // Créer la commande à partir du panier
+
+    // Préparer les items de la commande
+    console.log(cart.items)
+    const itemsWithRestaurantId = await Promise.all(cart.items.map(async (itemId) => {
+      console.log(itemId)
+      // Tenter de trouver l'item comme un Article
+      let item = await Article.findByPk(itemId);
+      if (item) {
+        return { itemId, restaurantId: item.userId, state : false };
+      }
+      // Sinon, tenter de le trouver comme un Menu
+      item = await Menu.findByPk(itemId);
+      if (item) {
+        return { itemId, restaurantId: item.userId , state : false};
+      }
+      // Retourner null si l'item n'est trouvé ni comme Article ni comme Menu
+      return null;
+    }));
+
+    // Filtrer les éventuels null si des items n'ont pas été trouvés
+    const filteredItems = itemsWithRestaurantId.filter(item => item !== null);
+
+    // Créer la commande avec les items transformés
     const order = await Order.create({
       userId: userId,
-      items: cart.items, 
+      items: filteredItems,
       address: req.body.address,
     });
-    
-    // Supprimer le panier (si la création de la commande est réussie)
+
+    // Supprimer le panier
     await cart.destroy();
-    
+
     res.status(201).json(order);
   } catch (error) {
     console.error(error);
@@ -127,6 +148,9 @@ router.post('/checkout', async (req, res) => {
   //check if the card is expired
   const today = new Date();
   const cardDate = new Date(cardInfo.expirationDate);
+  if (cardDate == undefined || cardDate == null || cardDate == '' || cardDate == 'Invalid Date'){
+    return res.status(400).json({ message: "Invalid expiration date" });
+  }
   if(today > cardDate){
     return res.status(400).json({ message: "Card is expired" });
   }
@@ -211,22 +235,44 @@ router.put('/cooked/:orderId', authenticateTokenAndRole, async (req, res) => {
 // Route pour accepter une commande
 router.put('/accept/:orderId', authenticateTokenAndRole, async (req, res) => {
   const { orderId } = req.params;
-  const id = req.user.id;
-
+  const userId = req.user.id; // L'ID du restaurateur actuel
+  
   try {
     const order = await Order.findByPk(orderId);
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
+
+    // S'assurer que la commande est payée avant de continuer
     if (!order.isPaid) {
-      return res.status(400).json({ message: "Order cannot be accepted if it's not paid" });
+      return res.status(400).json({ message: "Order cannot be accepted until it's paid." });
     }
-    if (req.user.userType === 'admin' || (req.user.userType === 'restaurant' && order.userId === id)) {
-      await order.update({ isAccepted: true });
-      res.json({ message: "Order has been accepted successfully" });
+
+    // Analyser les items de la commande pour obtenir un tableau d'objets
+    console.log(order.items)
+    const items = order.items;
+
+    // Marquer les articles appartenant au restaurateur comme acceptés
+    const updatedItems = items.map(item => {
+      if (item.restaurantId === userId) {
+        return { ...item, state: true };
+      }
+      return item;
+    });
+
+    // Vérifier si tous les articles ont été acceptés
+    const allItemsAccepted = updatedItems.every(item => item.state === true);
+
+    if (allItemsAccepted) {
+      // Si tous les articles sont acceptés, mettre à jour le statut de la commande
+      await order.update({ isAccepted: true, items: updatedItems});
+      res.json({ message: "All items have been accepted. Order is now accepted." });
     } else {
-      return res.status(403).json({ message: "Unauthorized" });
+      // Sinon, sauvegarder la commande avec les articles mis à jour
+      await order.update({ items: updatedItems });
+      res.json({ message: "Items accepted by the current restaurant. Waiting for other restaurants to accept their items." });
     }
+    
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: error.message });
@@ -235,34 +281,51 @@ router.put('/accept/:orderId', authenticateTokenAndRole, async (req, res) => {
 // Route pour refuser une commande
 router.put('/refuse/:orderId', authenticateTokenAndRole, async (req, res) => {
   const { orderId } = req.params;
-  const id = req.user.id;
-
+  const userId = req.user.id; // L'ID de l'utilisateur courant
+  
   try {
-    const order = await Order.findByPk(orderId)
-    if (order.isRefused) {
-      return res.status(400).json({ message: "Order is already refused" });
-    }
-    if (order.isAccepted) {
-      return res.status(400).json({ message: "Order is accepted, you can't cancel it now" });
-    }
+    const order = await Order.findByPk(orderId);
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
+    
+    // S'assurer que la commande est payée avant de continuer
     if (!order.isPaid) {
-      return res.status(400).json({ message: "Order cannot be refused if it's not paid" });
+      return res.status(400).json({ message: "Order cannot be refused until it's paid." });
     }
 
-    if (req.user.userType === 'admin' || (req.user.userType === 'restaurant' && order.userId === id)) {
-      await order.update({ isRefused: true });
-      res.json({ message: "Order has been refused successfully" });
-    } else {
-      return res.status(403).json({ message: "Unauthorized" });
+    if (order.isRefused) {
+      return res.status(400).json({ message: "Order is already refused." });
     }
+
+    // Analyser les items de la commande pour obtenir un tableau d'objets
+    const items = order.items
+
+    // Marquer les articles appartenant au restaurateur comme refusés
+    let itemRefused = false;
+    const updatedItems = items.map(item => {
+      if (item.restaurantId === userId) {
+        itemRefused = true; // Marquer qu'au moins un article a été refusé
+        return { ...item, state: false }; // state: false peut représenter l'article refusé
+      }
+      return item;
+    });
+
+    // Si au moins un article est refusé, mettre à jour le statut de la commande
+    if (itemRefused) {
+      await order.update({ isAccepted: false, isRefused: true, items: updatedItems });
+      res.json({ message: "Order has been refused by the restaurant." });
+    } else {
+      // Si aucun article n'a été refusé par ce restaurateur
+      res.json({ message: "No items from this restaurant to refuse in the order." });
+    }
+    
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: error.message });
   }
 });
+
 
 module.exports = router;
 

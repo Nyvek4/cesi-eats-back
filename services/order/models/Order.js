@@ -22,7 +22,7 @@ Order.init({
     },
   },
   items: {
-    type: DataTypes.ARRAY(DataTypes.UUID),
+    type: DataTypes.JSONB,
     allowNull: false,
   },
   address: {
@@ -58,7 +58,8 @@ Order.init({
     type: DataTypes.BOOLEAN,
     defaultValue: false,
     allowNull: false,
-  },isCooked: {
+  },
+  isCooked: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
     allowNull: false,

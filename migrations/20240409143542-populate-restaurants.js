@@ -118,6 +118,6 @@ module.exports = {
 
   down: async (queryInterface, Sequelize) => {
     // Supprimer les données insérées lors du rollback
-    await queryInterface.bulkDelete('Users', null, {});
+    // await queryInterface.bulkDelete('Users', null, {});
   }
 };
