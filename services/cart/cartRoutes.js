@@ -50,20 +50,21 @@ try {
   res.status(500).send({ message: error.message });
 }});
 
-router.delete('/delete',authenticateTokenAndRole, async (req, res) => {
-  const userId = req.user.id;
-  try {
-    const cart = await Cart.findOne({ where: { userId: req.user.id } });
-    if (!cart) {
-      return res.status(404).send({ message: "Cart not found" });
-    }
-    await cart.destroy();
-    res.send({ message: "Cart deleted successfully" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({ message: error.message });
-  }
-});
+// A IMPLEMENTER VIA LE SERVICE DE COMMANDE A LA VALIDATION DU CART
+// router.delete('/delete',authenticateTokenAndRole, async (req, res) => {
+//   const userId = req.user.id;
+//   try {
+//     const cart = await Cart.findOne({ where: { userId: req.user.id } });
+//     if (!cart) {
+//       return res.status(404).send({ message: "Cart not found" });
+//     }
+//     await cart.destroy();
+//     res.send({ message: "Cart deleted successfully" });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).send({ message: error.message });
+//   }
+// });
 
 
 module.exports = router;

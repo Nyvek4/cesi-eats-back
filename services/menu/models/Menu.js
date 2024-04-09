@@ -17,7 +17,7 @@ Menu.init({
   name: { type: DataTypes.STRING, allowNull: false },
   description: { type: DataTypes.TEXT, allowNull: false },
   price: { type: DataTypes.FLOAT, allowNull: false },
-  articles: { type: DataTypes.JSONB, allowNull: true },
+  articlesId: { type: DataTypes.JSONB, allowNull: true },
   userId: {
     type: DataTypes.UUID,
     references: {
@@ -26,15 +26,6 @@ Menu.init({
     },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
-  },
-  categorieId: {
-    type: DataTypes.UUID,
-    references: {
-      model: 'Categories', // Nom de la table
-      key: 'id',
-    },
-    onUpdate: 'CASCADE',
-    onDelete: 'SET NULL',
   },
   createdAt: { type: DataTypes.DATE, defaultValue: Sequelize.NOW },
   updatedAt: { type: DataTypes.DATE, defaultValue: Sequelize.NOW },
