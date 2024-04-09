@@ -4,9 +4,9 @@ const sequelize = new Sequelize(process.env.POSTGRES_URI, {
   dialect: 'postgres',
 });
 
-class Menu extends Model {}
+class Cart extends Model {}
 
-Menu.init({
+Cart.init({
   // Définition des attributs du modèle
   id: {
     type: DataTypes.UUID,
@@ -14,35 +14,26 @@ Menu.init({
     allowNull: false,
     primaryKey: true,
   },
-  name: { type: DataTypes.STRING, allowNull: false },
-  description: { type: DataTypes.TEXT, allowNull: false },
-  price: { type: DataTypes.FLOAT, allowNull: false },
   userId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Users', // Nom de la table
+      model: 'Users',
       key: 'id',
     },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
   },
+  items: {
+    type: DataTypes.JSONB,
+    allowNull: false,
+  },
   createdAt: { type: DataTypes.DATE, defaultValue: Sequelize.NOW },
   updatedAt: { type: DataTypes.DATE, defaultValue: Sequelize.NOW },
 }, {
   sequelize,
-  modelName: 'Menu',
+  modelName: 'Cart',
   timestamps: true, // Active les champs createdAt et updatedAt automatiquement
 });
 
-// Après la définition du modèle Menu
-Menu.associate = function(models) {
-  Menu.belongsToMany(models.Article, {
-    through: 'MenuArticles',
-    as: 'articles',
-    foreignKey: 'menuId',
-    otherKey: 'articleId'
-  });
-};
 
-
-module.exports = Menu;
+module.exports = Cart;

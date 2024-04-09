@@ -1,94 +1,87 @@
 const express = require('express');
-const User = require('./models/User');
-const authenticateTokenAndRole = require('./utils/authenticateTokenAndRole');
 const router = express.Router();
+const Order = require('./models/Order');
+const Cart = require('./models/Cart');
+const authenticateTokenAndRole = require('./utils/authenticateTokenAndRole');
+const { Op } = require('sequelize');
 
-// Récupérer toutes les commandes
-router.get('/restaurant/:restaurantId', async (req, res) => {
+// Route pour créer une commande à partir du panier
+router.post('/create', authenticateTokenAndRole, async (req, res) => {
+  const  userId  = req.user.id;
+  
   try {
-    const articles = await Article.findAll({
-      where: { restaurantId: req.params.restaurantId }
+    // Rechercher le panier de l'utilisateur
+
+    if (req.user.userType !== 'customer') {
+      return res.status(403).json({ message: 'Unauthorized: You need to be a customer' });
+    }
+
+    const cart = await Cart.findOne({ where: { userId: userId } });
+    if (!cart) {
+      return res.status(404).send({ message: 'Cart not found' });
+    }
+    
+    // Créer la commande à partir du panier
+    const order = await Order.create({
+      userId: userId,
+      items: cart.items, 
+      address: req.body.address,
     });
-    res.json(articles);
+    
+    // Supprimer le panier (si la création de la commande est réussie)
+    await cart.destroy();
+    
+    res.status(201).json(order);
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: error.message });
   }
 });
-// Rechercher un article par nom
-router.get('/search/:articleName', async (req, res) => {
+
+// Route pour lister l'historique commandes d'un utilisateur (basé sur le token ou sur param si admin)
+router.get('/history', authenticateTokenAndRole, async (req, res) => {
+  const userId  = req.user.id;
+  const { id } = req.params;
+
+  if (req.user.role === 'admin' && id) {
+    userId = id;
+  }
+  if (req.user.userType === 'delivery') {
+    return res.status(400).send({ message: 'Bad userType ' });
+  }
+
   try {
-    const articles = await Article.findAll({
-      where: { name: req.params.articleName },
-      include: Restaurant
+    const orders = await Order.findAll({
+      where: {
+        userId: userId,
+        [Op.or]: [
+          { isAcquitted: true },
+          { isRefused: true }
+        ]
+      }
     });
-    res.json(articles);
+    res.json(orders);
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: error.message });
   }
 });
 
-// Créer un article
-router.post('/', authenticateTokenAndRole, async (req, res) => {
-    const { name, description, price, composition } = req.body;
-    const { id, role } = req.user;
-  
-    // Seuls les utilisateurs avec le rôle "restaurant" ou "admin" peuvent créer des articles
-    if (role === 'restaurant' || role === 'admin') {
-      try {
-        const article = await Article.create({ name, description, price, restaurantId : id, composition});
-        res.status(201).json(article);
-      } catch (error) {
-        console.error(error);
-        res.status(500).send({ message: error.message });
-      }
-    } else {
-      return res.status(403).send({ message: "Unauthorized" });
-    }
-  });
-  
-// Mettre à jour un article
-router.put('/:articleId', authenticateTokenAndRole, async (req, res) => {
-    const { articleId } = req.params;
-    const { id, role, userType } = req.user;
-    const updateData = req.body;
-  
-    try {
-      const article = await Article.findByPk(articleId);
-      if (!article) {
-        return res.status(404).send({ message: "Article not found" });
-      }
-      // Vérifier si l'utilisateur est autorisé à modifier l'article
-      if (role === 'admin' || (userType === 'Restaurant' && article.userId === id)) {
-        await article.update(updateData);
-        res.send({ message: "Article updated successfully" });
-      } else {
-        return res.status(403).send({ message: "Unauthorized" });
-      }
-    } catch (error) {
-      console.error(error);
-      res.status(500).send({ message: error.message });
-    }
-  });
+// Route pour lister les commandes en cours d'un utilisateur (basé sur le token ou sur param si admin)
+router.get('/current', authenticateTokenAndRole, async (req, res) => {
+  const userId  = req.user.id;
+  const { id } = req.params;
 
-// Supprimer un article
-router.delete('/:articleId', authenticateTokenAndRole, async (req, res) => {
-  const { articleId } = req.params;
-  const { id, role, userType } = req.user;
+  if (req.user.role === 'admin' && id) {
+    userId = id;
+  }
+  if (req.user.userType === 'delivery') {
+    return res.status(400).send({ message: 'Bad userType ' });
+  }
 
   try {
-    const article = await Article.findByPk(articleId);
-    if (!article) {
-      return res.status(404).send({ message: "Article not found" });
-    }
-    // Vérifier si l'utilisateur est autorisé à supprimer l'article
-    if (role === 'admin' || (userType === 'Restaurant' && article.userId === id)) {
-      await article.destroy();
-      res.send({ message: "Article deleted successfully" });
-    } else {
-      return res.status(403).send({ message: "Unauthorized" });
-    }
+    const orders = await Order.findAll({ where: { userId: userId, isAcquitted: false, isRefused: false } });
+    res.json(orders);
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: error.message });
@@ -97,3 +90,4 @@ router.delete('/:articleId', authenticateTokenAndRole, async (req, res) => {
 
 
 module.exports = router;
+

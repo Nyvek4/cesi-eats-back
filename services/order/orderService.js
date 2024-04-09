@@ -1,10 +1,12 @@
 const express = require('express');
 const { Sequelize } = require('sequelize');
 const orderRoutes = require('./orderRoutes');
+const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 const PORT = process.env.PORT_SERVICE_ORDER || 3006;
 const sequelize = new Sequelize(process.env.POSTGRES_URI); 
 

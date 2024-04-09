@@ -26,6 +26,15 @@ Menu.init({
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
   },
+  categorieId: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'Categories', // Nom de la table
+      key: 'id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL',
+  },
   createdAt: { type: DataTypes.DATE, defaultValue: Sequelize.NOW },
   updatedAt: { type: DataTypes.DATE, defaultValue: Sequelize.NOW },
 }, {

@@ -45,4 +45,15 @@ Article.init({
   timestamps: true, // Active les champs createdAt et updatedAt automatiquement
 });
 
+// Après la définition du modèle Article
+Article.associate = function(models) {
+  Article.belongsToMany(models.Menu, {
+    through: 'MenuArticles',
+    as: 'menus',
+    foreignKey: 'articleId',
+    otherKey: 'menuId'
+  });
+};
+
+
 module.exports = Article;
