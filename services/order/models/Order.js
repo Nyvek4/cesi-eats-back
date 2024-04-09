@@ -58,6 +58,10 @@ Order.init({
     type: DataTypes.BOOLEAN,
     defaultValue: false,
     allowNull: false,
+  },isCooked: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
   },
   createdAt: {
     type: DataTypes.DATE,

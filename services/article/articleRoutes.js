@@ -153,6 +153,19 @@ router.delete('/:articleId', authenticateTokenAndRole, async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 });
+// Recuperer les détails d'un article
+router.get('/:articleId', async (req, res) => {
+  try {
+    const article = await Article.findByPk(req.params.articleId);
+    if (!article) {
+      return res.status(404).send({ message: "Article not found" });
+    }
+    res.json(article);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: error.message });
+  }
+});
 
 
 module.exports = router;

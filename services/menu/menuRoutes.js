@@ -22,7 +22,6 @@ router.get('/restaurant/:restaurantId', async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 });
-
 // Rechercher un menu par nom
 router.get('/search/:menuName', async (req, res) => {
   try {
@@ -60,7 +59,6 @@ router.get('/search/:menuName', async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 });
-
 // Créer un nouveau menu
 router.post('/', authenticateTokenAndRole, async (req, res) => {
   const { name, description, price, articlesId, categorieId,restaurantId } = req.body;
@@ -101,7 +99,6 @@ router.post('/', authenticateTokenAndRole, async (req, res) => {
       res.status(500).send({ message: error.message });
   }
 });
-  
 // Mettre à jour un menu
 router.put('/:menuId', authenticateTokenAndRole, async (req, res) => {
   const { menuId } = req.params;
@@ -132,8 +129,6 @@ router.put('/:menuId', authenticateTokenAndRole, async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 });
-
-
 // Supprimer un menu
 router.delete('/:menuId', authenticateTokenAndRole, async (req, res) => {
   const { menuId } = req.params;
@@ -158,6 +153,24 @@ router.delete('/:menuId', authenticateTokenAndRole, async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 });
-
+// Recuperer les détails d'un menu
+router.get('/:menuId', async (req, res) => {
+  try {
+    console.log(req.params.menuId)
+    const menu = await Menu.findByPk(req.params.menuId, {
+      include: {
+        model: Article,
+        as: 'Articles'
+      }
+    });
+    if (!menu) {
+      return res.status(404).send({ message: "Menu not found" });
+    }
+    res.json(menu);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: error.message });
+  }
+});
 
 module.exports = router;
