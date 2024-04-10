@@ -15,8 +15,8 @@ router.post('/create', authenticateTokenAndRole, async (req, res) => {
 
   try {
 
-    userAddress = await User.findByPk(userId).address;
-    console.log(userAddress)
+    user = await User.findByPk(userId);
+    console.log("DEBUGGGGG", user.id, user.address)
 
     choosedAddress = userAddress[req.body.address];
     if(choosedAddress === null || choosedAddress === undefined || choosedAddress === '' || choosedAddress.street === 'N/A' || choosedAddress.city === 'N/A' || choosedAddress.zipCode === 'N/A' || choosedAddress.country === 'N/A'){

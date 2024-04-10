@@ -11,7 +11,7 @@ router.get('/listOrder', authenticateTokenAndRole, async (req, res) => {
   try {
 
     if (req.user.userType !== 'delivery') {
-      return res.status(403).json({ message: "Unauthorized : You need to be a delivery" });
+      return res.status(403).json({ message: "Unauthorized : You need to be a driver" });
     }
 
 
