@@ -1,6 +1,8 @@
 // models/Delivery.js
-const { Model, DataTypes } = require('sequelize');
-const sequelize = require('../config/database'); // Assurez-vous que le chemin est correct
+const { Model, DataTypes, Sequelize } = require('sequelize');
+const sequelize = new Sequelize(process.env.POSTGRES_URI, {
+  dialect: 'postgres', 
+});
 
 class Delivery extends Model {}
 
@@ -14,14 +16,14 @@ Delivery.init({
   driverId: {
     type: DataTypes.UUID,
     references: {
-      model: 'User',
+      model: 'Users',
       key: 'id',
     }
   },
   orderId: {
     type: DataTypes.UUID,
     references: {
-      model: 'Order',
+      model: 'Orders',
       key: 'id',
     }
   },

@@ -1,4 +1,5 @@
 const { Sequelize, DataTypes, Model } = require('sequelize');
+const User = require('./User');
 require('dotenv').config({ path:'.env'}); 
 const sequelize = new Sequelize(process.env.POSTGRES_URI, {
   dialect: 'postgres', 
@@ -79,5 +80,36 @@ Order.init({
   modelName: 'Order',
   timestamps: true,
 });
+
+
+Order.getDelieryAddress = async (orderId,choosedAddress) => {
+  const order = await Order.findByPk(orderId);
+  if (!order) {
+    return null;
+  }
+  this_user = await User.findByPk(order.userId);
+  address = this_user.address[choosedAddress]
+  return address;
+};
+
+Order.getRestaurantAddress = async (orderId) => {
+  const order = await Order.findByPk(orderId);
+  if (!order) {
+    return null;
+  }
+  let addresses = [];
+  //Boucler sur les items pour récupérer l'adresse des restaurant
+  for (let i = 0; i < order.items.length; i++) {
+    let address
+    idRestaurant = order.items[i].restaurantId
+    thisRestaurant = await User.findByPk(idRestaurant);
+    address = thisRestaurant.address;
+    addresses.push(address);
+  }
+
+
+  return addresses;
+};
+
 
 module.exports = Order;
