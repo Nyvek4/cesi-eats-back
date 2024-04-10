@@ -32,13 +32,17 @@ const Items = body.Items;
 const userId = req.user.id;
 console.log(Items)
 try {
-  if (!checkItems(Items)) {
-    return res.status(400).json({ message: "Invalid items in cart :" });
+
+  const check = await checkItems(Items);
+
+  if (!check) {
+    return res.status(400).json({ message: "Invalid items in cart" });
   }
   const user = await User.findByPk(userId);
   if (!user) {
     return res.status(404).send({ message: "User not found" });
   }
+  
   const cart = await Cart.findOne({ where: { userId: req.user.id } });
   const payload = { "items": Items}
   await cart.update(payload);

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Order = require('./models/Order');
 const Cart = require('./models/Cart');
+const User = require('./models/User');
 const Article = require('./models/Article');
 const Menu = require('./models/Menu');
 const verifyCard = require('./utils/verifyCard');
@@ -13,6 +14,15 @@ router.post('/create', authenticateTokenAndRole, async (req, res) => {
   const userId = req.user.id;
 
   try {
+
+    userAddress = await User.findByPk(userId).address;
+    console.log(userAddress)
+
+    choosedAddress = userAddress[req.body.address];
+    if(choosedAddress === null || choosedAddress === undefined || choosedAddress === '' || choosedAddress.street === 'N/A' || choosedAddress.city === 'N/A' || choosedAddress.zipCode === 'N/A' || choosedAddress.country === 'N/A'){
+      return res.status(400).send({ message: 'User address not found or invalid' });
+    }
+
     if (req.user.userType !== 'customer') {
       return res.status(403).json({ message: 'Unauthorized: You need to be a customer' });
     }
