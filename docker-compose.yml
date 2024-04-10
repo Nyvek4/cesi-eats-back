@@ -185,6 +185,20 @@ services:
     networks:
       - ceats_network
 
+  health-service:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      args:
+        - PORT=${PORT_SERVICE_HEALTH}
+    ports:
+      - "${PORT_SERVICE_HEALTH}:${PORT_SERVICE_HEALTH}"
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      JWT_SECRET: ${JWT_SECRET}
+      MONGODB_URI: ${MONGODB_URI}
+    networks:
+      - ceats_network
 volumes:
   postgres_data:
 
