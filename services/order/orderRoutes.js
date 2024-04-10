@@ -16,10 +16,11 @@ router.post('/create', authenticateTokenAndRole, async (req, res) => {
   try {
 
     user = await User.findByPk(userId);
-    console.log("DEBUGGGGG", user.id, user.address)
+    userAddress = user.address;
 
     choosedAddress = userAddress[req.body.address];
-    if(choosedAddress === null || choosedAddress === undefined || choosedAddress === '' || choosedAddress.street === 'N/A' || choosedAddress.city === 'N/A' || choosedAddress.zipCode === 'N/A' || choosedAddress.country === 'N/A'){
+    console.log(choosedAddress)
+    if(choosedAddress === null || choosedAddress === undefined || choosedAddress === '' || choosedAddress.Street === 'N/A' || choosedAddress.City === 'N/A' || choosedAddress.ZipCode === 'N/A'){
       return res.status(400).send({ message: 'User address not found or invalid' });
     }
 

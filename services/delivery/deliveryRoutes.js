@@ -32,7 +32,7 @@ router.get('/listOrder', authenticateTokenAndRole, async (req, res) => {
   }
 });
 
-router.put('/assignOrder/:orderId', async (req, res) => {
+router.put('/assignOrder/:orderId', async (req, res) => { 
   try {
     const order = await Order.findByPk(req.params.orderId);
     if (!order) {
