@@ -20,6 +20,51 @@ router.get('/restaurant/:restaurantId', async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 });
+router.get('/cat/:categorieName', async (req, res) => {
+  try {
+    // Correct retrieval of Categorie by name
+    if(req.params.categorieName === 'All'){
+      const allUser = await User.findAll({
+        where: { userType: 'restaurant' },
+        attributes: ['id', 'firstname', 'lastname', 'email', 'address'] // Specify the attributes you want to fetch
+      });
+      return res.json(allUser);
+    }
+
+    const Cat = await Categorie.findOne({
+      where: { nom: req.params.categorieName }
+    });
+
+    if (!Cat) {
+      return res.status(404).send({ message: "Categorie not found" });
+    }
+
+    // Fetching articles that belong to the retrieved Categorie
+    const articles = await Article.findAll({
+      where: { categorieId: Cat.id }
+    });
+
+    console.log(articles)
+
+    // Collecting unique restaurant IDs from articles
+    const restaurantIds = [...new Set(articles.map(article => article.userId))];
+
+    // Fetching restaurants based on the collected IDs
+    const restaurants = await Promise.all(restaurantIds.map(async (userId) => {
+      return await User.findByPk(userId);
+    }));
+
+    // Filtering out null values and extracting necessary information
+    const filteredRestaurants = restaurants.filter(restau => restau !== null).map(restau => {
+      return { restaurantName: restau.firstname };
+    });
+
+    res.json(filteredRestaurants);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: error.message });
+  }
+});
 // Récupérer les restaurants par un nom d'article
 router.get('/search/:articleName', async (req, res) => {
   try {

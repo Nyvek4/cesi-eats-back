@@ -2,13 +2,14 @@ const express = require('express');
 const User = require('./models/User');
 const Order = require('./models/Order');
 const jwt = require('jsonwebtoken');
+const authenticateTokenAndRole = require('./utils/authenticateTokenAndRole');
 const router = express.Router();
 
 
 // routes/deliveryRoutes.js
-router.get('/listOrder', async (req, res) => {
+router.get('/listOrder', authenticateTokenAndRole, async (req, res) => {
   try {
-    
+
     if (req.user.userType !== 'delivery') {
       return res.status(403).json({ message: "Unauthorized : You need to be a delivery" });
     }

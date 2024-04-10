@@ -23,7 +23,10 @@ router.post('/create', authenticateTokenAndRole, async (req, res) => {
     }
 
     // Préparer les items de la commande
-    console.log(cart.items)
+    if(cart.items.length === 0){
+      return res.status(400).send({ message: 'Cart is empty' });
+    }
+
     const itemsWithRestaurantId = await Promise.all(cart.items.map(async (itemId) => {
       console.log(itemId)
       // Tenter de trouver l'item comme un Article
