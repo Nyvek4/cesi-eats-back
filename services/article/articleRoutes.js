@@ -56,7 +56,7 @@ router.get('/cat/:categorieName', async (req, res) => {
 
     // Filtering out null values and extracting necessary information
     const filteredRestaurants = restaurants.filter(restau => restau !== null).map(restau => {
-      return { restaurantName: restau.firstname };
+      return { restaurantName: restau.firstname, id: restau.id, lastName: restau.lastName, email: restau.email, address : restau.address};
     });
 
     res.json(filteredRestaurants);
