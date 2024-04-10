@@ -1,5 +1,6 @@
 const express = require('express');
-const User = require('./models/User'); // Utilise le modèle Sequelize User
+const User = require('./models/User');
+const Order = require('./models/Order');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 
@@ -7,11 +8,16 @@ const router = express.Router();
 // routes/deliveryRoutes.js
 router.get('/listOrder', async (req, res) => {
   try {
+    
+    if (req.user.userType !== 'delivery') {
+      return res.status(403).json({ message: "Unauthorized : You need to be a delivery" });
+    }
+
+
     const orders = await Order.findAll({
       where: {
         isPaid: true,
         isAccepted: true,
-        // Assurez-vous que tous les autres booléens sont à false
         isAssigned: false,
         isPickedUp: false,
         isRefused: false,
@@ -25,5 +31,19 @@ router.get('/listOrder', async (req, res) => {
   }
 });
 
+router.put('/assignOrder/:orderId', async (req, res) => {
+  try {
+    const order = await Order.findByPk(req.params.orderId);
+    if (!order) {
+      return res.status(404).send({ message: "Order not found" });
+    }
+    order.isAssigned = true;
+    await order.save();
+    res.send({ message: "Order assigned successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: error.message });
+  }
+});
 
 module.exports = router;

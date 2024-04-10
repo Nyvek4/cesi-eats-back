@@ -30,7 +30,8 @@ module.exports = async function (req, res, next) {
     }
     req.user = {
       id: user.id,
-      role: user.role
+      role: user.role,
+      userType: user.userType
     };
     next();
   } catch (err) {
