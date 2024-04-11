@@ -57,4 +57,35 @@ try {
   res.status(500).send({ message: error.message });
 }});
 
+router.put('/deleteItem',authenticateTokenAndRole, async (req, res) => {
+  const body  = req.body;
+  const Items = body.Items;
+  const userId = req.user.id;
+  try {
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+    if (!Items) {
+      return res.status(400).send({ message: "Please send the new cart" });
+    }
+
+    const cart = await Cart.findOne({ where: { userId: req.user.id } });
+    if(!cart){
+      return res.status(404).send({ message: "Cart not found" });
+    }
+    if(cart.items.length === 0){
+      return res.status(400).send({ message: "Cart is already empty" });
+    }
+
+    await cart.update({ items: Items });
+    if(cart){
+      return res.send({ message: "Item deleted from cart successfully" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: error.message });
+  }
+})
+
 module.exports = router;

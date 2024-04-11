@@ -68,7 +68,6 @@ router.get('/totalSalesPeriod',authenticateTokenAndRole, async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 });
-
 // Chiffres clefs pour un restaurant (chiffre d'affaire, nombre de commandes, nombre de clients, etc.)
 router.get('/restaurantStats',authenticateTokenAndRole, async (req, res) => {
   try {
