@@ -39,4 +39,14 @@ Delivery.init({
   modelName: 'Delivery',
 });
 
+Delivery.cancel = async function(orderId) {
+  const delivery = await Delivery.findOne({ where: { orderId: orderId } });
+  if (!delivery) {
+    return false;
+  }
+  delivery.isCanceled = true;
+  await delivery.save();
+  return true;
+}
+
 module.exports = Delivery;

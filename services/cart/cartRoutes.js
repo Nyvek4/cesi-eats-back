@@ -25,7 +25,7 @@ router.get('/consult',authenticateTokenAndRole, async (req, res) => {
   }
 });
 
-// Ajout d'un article au panier d'un utilisateur
+// Ajout d'items au panier d'un utilisateur
 router.put('/edit',authenticateTokenAndRole, async (req, res) => {
 const body  = req.body;
 const Items = body.Items;
@@ -44,8 +44,11 @@ try {
   }
   
   const cart = await Cart.findOne({ where: { userId: req.user.id } });
-  const payload = { "items": Items}
-  await cart.update(payload);
+    
+  const existingItems = cart.items || []; 
+  const updatedItems = [...existingItems, ...Items]; 
+  await cart.update({ items: updatedItems });
+  
   if(cart){
     return res.send({ message: "Items added to cart successfully" });
   }

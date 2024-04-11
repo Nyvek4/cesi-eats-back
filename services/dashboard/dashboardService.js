@@ -12,7 +12,7 @@ app.use(cors());
 const PORT = process.env.PORT_SERVICE_DASHBOARD || 3008;
 
 // Connexion à PostgreSQL avec Sequelize
-const sequelize = new Sequelize(process.env.POSTGRES_URI); // Assure-toi que POSTGRES_URI est défini dans ton .env
+const sequelize = new Sequelize(process.env.POSTGRES_URI); 
 // Test de la connexion
 (async () => {
   try {
