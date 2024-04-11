@@ -140,4 +140,93 @@ Order.getRestaurantAddress = async (orderId) => {
 };
 
 
+Order.getRestaurantIncome = async (restaurantId) => {
+  try {
+    const orders = await Order.findAll({
+      where: {
+        isPaid: true,
+        isRefused: false,
+        isAcquitted: false,
+        [Sequelize.Op.and]: Sequelize.literal(`items @> '[{"restaurantId": "${restaurantId}"}]'`)
+      }
+    });
+    let total = 0;
+    console.log(orders);
+    for (const order of orders) {
+      const filteredItems = order.items.filter(item => item.restaurantId === restaurantId);
+      console.log(filteredItems);
+      price_of_command = 0;
+      for (const item of filteredItems) {
+        this_ = await Article.findByPk(item.itemId); // Assurez-vous que cette méthode prend en compte les éléments filtrés si nécessaire
+        if (!this_) {
+          this_ = await Menu.findByPk(item.itemId);
+        }
+        price_of_command += this_.price;
+      }
+      total += price_of_command;
+    }
+    const stats = {
+      Total_Income: total - total * 0.0834,
+    };
+    return stats;
+  } catch (error) {
+    console.error(error);
+    return ({ message: error.message });
+  }
+};
+Order.getRestaurantOrders = async (restaurantId) => {
+
+  try {
+    const orders = await Order.findAll({
+      where: {
+        isPaid: true,
+        isAccepted: true,
+        [Sequelize.Op.and]: Sequelize.literal(`items @> '[{"restaurantId": "${restaurantId}"}]'`)
+      }
+    });
+    return orders.length;
+  } catch (error) {
+    console.error(error);
+    return ({ message: error.message });
+  }
+}
+Order.getRestaurantCustomers = async (restaurantId) => {
+  try {
+    const orders = await Order.findAll({
+      where: {
+        isPaid: true,
+        isAccepted: true,
+        [Sequelize.Op.and]: Sequelize.literal(`items @> '[{"restaurantId": "${restaurantId}"}]'`)
+      }
+    });
+    let customers = [];
+    for (const order of orders) {
+      if (!customers.includes(order.userId)) {
+        customers.push(order.userId);
+      }
+    }
+    return customers.length;
+  } catch (error) {
+    console.error(error);
+    return ({ message: error.message });
+  }
+}
+Order.getRestaurantArticlesTotal = async (restaurantId) => {
+  const articles = await Article.findAll({
+    where: {
+      userId: restaurantId
+    }
+  });
+  return articles.length;
+
+}
+Order.getRestaurantMenusTotal = async (restaurantId) => {
+  const menus = await Menu.findAll({
+    where: {
+      userId: restaurantId
+    }
+  });
+  return menus.length;
+}
+
 module.exports = Order;
