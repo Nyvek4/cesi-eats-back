@@ -35,6 +35,9 @@ try {
 
   const check = await checkItems(Items);
 
+  console.log(check);
+  console.log(userId);
+
   if (!check) {
     return res.status(400).json({ message: "Invalid items in cart" });
   }
@@ -45,8 +48,8 @@ try {
   
   const cart = await Cart.findOne({ where: { userId: req.user.id } });
     
-  const existingItems = cart.items || []; 
-  const updatedItems = [...existingItems, ...Items]; 
+  const existingItems = Array.isArray(cart.items) ? cart.items : [];
+  const updatedItems = [...existingItems, ...Items];
   await cart.update({ items: updatedItems });
 
   if(cart){
