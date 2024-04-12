@@ -9,7 +9,6 @@ const defineAssociations = () => {
   Delivery.belongsTo(User, { foreignKey: 'driverId' });
   Order.hasOne(Delivery, { foreignKey: 'orderId' });
   Delivery.belongsTo(Order, { foreignKey: 'orderId' });
-
 };
 
 

@@ -15,7 +15,6 @@ router.get('/listOrder', authenticateTokenAndRole, async (req, res) => {
       return res.status(403).json({ message: "Unauthorized : You need to be a driver" });
     }
 
-
     const orders = await Order.findAll({
       where: {
         isPaid: true,
@@ -27,6 +26,35 @@ router.get('/listOrder', authenticateTokenAndRole, async (req, res) => {
       }
     });
     res.json(orders);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: error.message });
+  }
+});
+// assignation d'une commande à un livreur et creation d'une instance de delivery
+router.put('/assign', authenticateTokenAndRole, async (req, res) => { 
+  try {
+    const driverId = req.user.id;
+    if (req.user.userType !== 'delivery') {
+      return res.status(403).json({ message: "Unauthorized : You need to be a driver" });
+    }
+    if (!req.body.orderId) {
+      return res.status(400).json({ message: "Missing orderId" });
+    }
+    if (await Delivery.findOne({ where: { orderId: req.body.orderId } })) {
+      return res.status(400).json({ message: "Already picked up / assigned" });
+    }
+    const order = await Order.findByPk(req.body.orderId);
+    console.log("BEBUGGGGG", order)
+    if (!order) {
+      return res.status(404).send({ message: "Order not found" });
+    }
+    order.isAssigned = true;
+    await order.save();
+
+
+    res.send({ message: "Order assigned successfully" });
+
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: error.message });
@@ -81,6 +109,31 @@ router.get('/order/:orderId', authenticateTokenAndRole, async (req, res) => {
     }
 
     res.json(resp);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: error.message });
+  }
+});
+// Récuperer les livraisons en cours à un livreur
+router.get('/current', authenticateTokenAndRole, async (req, res) => {
+  try {
+    if (req.user.userType !== 'delivery') {
+      return res.status(403).json({ message: "Unauthorized : You need to be a driver" });
+    }
+    
+    // Étape 1 : Récupérer les livraisons assignées au livreur
+    const deliveries = await Delivery.findAll({
+      where: {
+        driverId: req.user.id,
+        isDelivered: false
+      },
+      include: [{
+        model: Order,
+        where: { isAcquitted: false }, // Inclure uniquement les commandes non acquittées
+      }]
+    });
+
+    res.json(deliveries);
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: error.message });

@@ -41,7 +41,8 @@ router.post('/login', async (req, res) => {
         process.env.JWT_SECRET, 
         { expiresIn: user.role === 'admin' ? '10h' : '3h' }
       );
-      res.status(200).json({ token });
+      userType = user.userType;
+      res.status(200).json({ token, userType });
     } else {
       res.status(401).send('Authentication failed. Wrong password.');
     }
