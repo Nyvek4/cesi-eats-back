@@ -7,7 +7,7 @@ const authenticateTokenAndRole = require('./utils/authenticateTokenAndRole');
 const router = express.Router();
 
 defineAssociations();
-// routes/deliveryRoutes.js
+// liste des commandes à livrer
 router.get('/listOrder', authenticateTokenAndRole, async (req, res) => {
   try {
 
@@ -75,7 +75,9 @@ router.put('/pickedUp', authenticateTokenAndRole, async (req, res) => {
     }
     const insert_delivery = await Delivery.create({ orderId: req.body.orderId, driverId: driverId});
     const order = await Order.findByPk(req.body.orderId);
-    console.log("BEBUGGGGG", order)
+    if (order.isCooked === false || order.isAccepted === false || order.isPaid === false || order.isAssigned === true) {
+      return res.status(404).send({ message: "Order isn't pickable" });
+    }
     if (!order) {
       return res.status(404).send({ message: "Order not found" });
     }
@@ -114,18 +116,49 @@ router.get('/order/:orderId', authenticateTokenAndRole, async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 });
+// Cancel delivery
+router.put('/cancel', authenticateTokenAndRole, async (req, res) => {
+  try {
+    if (req.user.userType !== 'delivery') {
+      return res.status(403).json({ message: "Unauthorized : You need to be a driver" });
+    }
+    if (!req.body.orderId) {
+      return res.status(400).json({ message: "Missing orderId" });
+    }
+    const order = await Order.findByPk(req.body.orderId);
+    if (!order) {
+      return res.status(404).send({ message: "Order not found" });
+    }
+    if(!order.isAssigned){
+      return res.status(400).json({ message: "Order not assigned" });
+    }
+    if (!await Delivery.cancel(req.body.orderId)) {
+      return res.status(404).send({ message: "Delivery not found" });
+    }
+    order.isRefused = true;
+    order.isAssigned = false;
+    await order.save();
+
+
+    res.send({ message: "Order canceled successfully" });
+    
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: error.message });
+  }
+})
 // Récuperer les livraisons en cours à un livreur
 router.get('/current', authenticateTokenAndRole, async (req, res) => {
   try {
     if (req.user.userType !== 'delivery') {
       return res.status(403).json({ message: "Unauthorized : You need to be a driver" });
     }
-    
+    console.log(req.user.id)
     // Étape 1 : Récupérer les livraisons assignées au livreur
     const deliveries = await Delivery.findAll({
       where: {
         driverId: req.user.id,
-        isDelivered: false
+        isCanceled: false
       },
       include: [{
         model: Order,
@@ -139,6 +172,30 @@ router.get('/current', authenticateTokenAndRole, async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 });
+// Récuperer l'historique de livraisons d'un livreur
+router.get('/history', authenticateTokenAndRole, async (req, res) => {
+  try {
+    if (req.user.userType !== 'delivery') {
+      return res.status(403).json({ message: "Unauthorized : You need to be a driver" });
+    }
+    console.log(req.user.id)
+    // Étape 1 : Récupérer les livraisons assignées au livreur
+    const deliveries = await Delivery.findAll({
+      where: {
+        driverId: req.user.id,
+        isCanceled: false
+      },
+      include: [{
+        model: Order,
+        where: { isAcquitted: true }, // Inclure uniquement les commandes non acquittées
+      }]
+    });
 
+    res.json(deliveries);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: error.message });
+  }
+});
 
 module.exports = router;

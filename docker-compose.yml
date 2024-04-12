@@ -29,16 +29,6 @@ services:
     networks:
       - ceats_network
 
-  # api-gateway:
-  #   image: nginx
-  #   restart: always
-  #   ports:
-  #     - "8080:80"  # NGINX exposé sur le port 8080 de l'hôte
-  #   volumes:
-  #     - ./nginx:/etc/nginx/conf.d  # Montage du dossier contenant la configuration de NGINX
-  #   depends_on:
-  #     - postgres
-
   auth-service:
     build:
       context: ./services/auth
@@ -199,6 +189,29 @@ services:
       MONGODB_URI: ${MONGODB_URI}
     networks:
       - ceats_network
+
+  dashboard-service:
+    build:
+      context: ./services/dashboard
+      dockerfile: Dockerfile
+      args:
+        - PORT=${PORT_SERVICE_DASHBOARD}
+    ports:
+      - "${PORT_SERVICE_DASHBOARD}:${PORT_SERVICE_DASHBOARD}"
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      JWT_SECRET: ${JWT_SECRET}
+      MONGODB_URI: ${MONGODB_URI}
+    depends_on:
+      - auth-service
+      - postgres
+    volumes:
+      - ./services/dashboard:/app
+      - /app/node_modules
+    networks:
+      - ceats_network
+
+
 volumes:
   postgres_data:
 
